@@ -43,6 +43,14 @@ namespace DiceBaby
         [SerializeField] private GameObject resultPanel;
         [SerializeField] private TextMeshProUGUI resultText;
 
+        [Header("Audio")]
+        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioClip loseRoundSound;
+        [SerializeField] private AudioClip winRoundSound;
+        [SerializeField] private AudioClip tieSound;
+        [SerializeField] private AudioClip gameOverWinSound;
+        [SerializeField] private AudioClip gameOverLoseSound;
+
         private DiceGameManager _gameManager;
         private bool _isPlayer1;
 
@@ -135,6 +143,7 @@ namespace DiceBaby
                     bool iWon = (_isPlayer1 && _gameManager.Player1Lives > 0) ||
                                (!_isPlayer1 && _gameManager.Player2Lives > 0);
                     if (gameOverText) gameOverText.text = iWon ? "YOU WIN!" : "YOU LOSE!";
+                    PlaySound(iWon ? gameOverWinSound : gameOverLoseSound);
                     break;
             }
         }
@@ -182,17 +191,32 @@ namespace DiceBaby
 
             if (resultText == null) return;
 
+            // Check if game is over (don't play round sounds, game over sounds will play instead)
+            bool isGameOver = _gameManager != null && 
+                (_gameManager.Player1Lives <= 0 || _gameManager.Player2Lives <= 0);
+
             if (winner == 0)
             {
                 resultText.text = $"TIE! ({myResult} vs {opponentResult}) No lives lost.";
+                if (!isGameOver) PlaySound(tieSound);
             }
             else if (winner == 1)
             {
                 resultText.text = $"You WIN! ({myResult} vs {opponentResult})";
+                if (!isGameOver) PlaySound(winRoundSound);
             }
             else
             {
                 resultText.text = $"You LOSE! ({myResult} vs {opponentResult}) -1 Life";
+                if (!isGameOver) PlaySound(loseRoundSound);
+            }
+        }
+
+        private void PlaySound(AudioClip clip)
+        {
+            if (audioSource != null && clip != null)
+            {
+                audioSource.PlayOneShot(clip);
             }
         }
 
